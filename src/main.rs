@@ -41,18 +41,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("input {}x{}", width, height);
 
-    let mut img = image::RgbImage::new(width, height);
-    for row in 0..height {
-        for col in 0..width {
-            // let pixel = pixels[((row * width) + col) as usize];
-            let pixel = pixels.get(((row * width) + col) as usize);
-            // println!("{}x{} - {} = {:?}", row, col, ((row * width) + col), pixel);
-            // if pixel.is_none()  {
-            // }
-
-            let ((_, _), red, green, blue) = pixel.unwrap().clone();
-            img.put_pixel(col, row, image::Rgb([red, green, blue]));
-        }
+    let mut img = image::RgbImage::new(width + 1, height + 1);
+    for pixel in pixels {
+        let ((x, y), red, green, blue) = pixel;
+        img.put_pixel(y, x, image::Rgb([red, green, blue]));
     }
 
     img.save("output_do_meu_cli.png").unwrap();
