@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use image::{GenericImageView, Pixel};
+use image::GenericImageView;
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -15,14 +15,14 @@ pub struct Args {
 #[derive(Subcommand)]
 pub enum SubCommands {
     ToImage {
-        file: PathBuf,
+        file: Option<PathBuf>,
 
         #[arg(short, long)]
         output_file: PathBuf,
     },
     ToCsv {
         file: PathBuf,
-    } 
+    },
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -40,26 +40,43 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn csv_to_image(file: PathBuf, output_file: PathBuf) -> Result<(), Box<dyn Error>> {
-    let mut rdr = csv::ReaderBuilder::new()
-        .delimiter(b' ')
-        .from_path(file)
-        .unwrap();
+fn csv_to_image(file: Option<PathBuf>, output_file: PathBuf) -> Result<(), Box<dyn Error>> {
+    let mut csv_builder = csv::ReaderBuilder::new();
+    let csv_builder = csv_builder.delimiter(b' ');
 
-    let mut pixels: Vec<((u32, u32), u8, u8, u8)> = Vec::new();
+    let input_values: Vec<(String, u8, u8, u8)> = match file {
+        Some(path) => {
+            let mut reader = csv_builder.from_path(path)?;
+            reader
+                .deserialize()
+                .into_iter()
+                .filter_map(Result::unwrap)
+                .collect()
+        }
+        None => {
+            let mut reader = csv_builder.from_reader(std::io::stdin());
+            reader
+                .deserialize()
+                .into_iter()
+                .filter_map(Result::unwrap)
+                .collect()
+        }
+    };
 
-    for result in rdr.deserialize() {
-        let record: (String, u8, u8, u8) = result?;
+    let pixels: Vec<((u32, u32), u8, u8, u8)> = input_values
+        .into_iter()
+        .map(|(label, r, g, b)| {
+            let (x, y) = label.split_once(':').unwrap();
 
-        let (x, y) = record.0.split_once(':').unwrap();
-        let height = x.parse::<u32>().unwrap();
-        let widht = y.parse::<u32>().unwrap();
+            let x = x.parse::<u32>().unwrap();
+            let y = y.parse::<u32>().unwrap();
 
-        pixels.push(((height,widht), record.1, record.2, record.3));
-    }
+            ((x, y), r, g, b)
+        })
+        .collect();
 
-    let height: u32 = *pixels.iter().map(|((x,_), _, _, _)| x).max().unwrap();
-    let width: u32 = *pixels.iter().map(|((_,y), _, _, _)| y).max().unwrap();
+    let height: u32 = *pixels.iter().map(|((x, _), _, _, _)| x).max().unwrap();
+    let width: u32 = *pixels.iter().map(|((_, y), _, _, _)| y).max().unwrap();
 
     println!("input {}x{}", width, height);
 
