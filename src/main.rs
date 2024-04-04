@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::io::stdout;
 
 #[derive(Parser)]
-#[command(name = "catimg", author, version, about, long_about = None)] // Get info in Cargo.toml
+#[command(name = "pixels", author, version, about, long_about = None)] // Get info in Cargo.toml
 pub struct Args {
     #[command(subcommand)]
     command: SubCommands,
@@ -44,22 +44,22 @@ fn csv_to_image(file: Option<PathBuf>, output_file: PathBuf) -> Result<(), Box<d
     let mut csv_builder = csv::ReaderBuilder::new();
     let csv_builder = csv_builder.delimiter(b' ');
 
-    let input_values: Vec<(String, u8, u8, u8)> = match file {
+    let input_values: Result<Vec<(String, u8, u8, u8)>, csv::Error> = match file {
         Some(path) => {
             let mut reader = csv_builder.from_path(path)?;
-            reader
-                .deserialize()
-                .into_iter()
-                .filter_map(Result::unwrap)
-                .collect()
+            reader.deserialize().into_iter().collect()
         }
         None => {
             let mut reader = csv_builder.from_reader(std::io::stdin());
-            reader
-                .deserialize()
-                .into_iter()
-                .filter_map(Result::unwrap)
-                .collect()
+            reader.deserialize().into_iter().collect()
+        }
+    };
+
+    let input_values = match input_values {
+        Ok(values) => values,
+        Err(e) => {
+            eprintln!("error at parse: {}", e);
+            return Err(e.into());
         }
     };
 

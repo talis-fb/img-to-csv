@@ -1,5 +1,5 @@
 [package]
-name = "foto_get_pixels"
+name = "pixels"
 version = "0.1.0"
 edition = "2021"
 

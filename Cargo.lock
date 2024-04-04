@@ -358,16 +358,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "foto_get_pixels"
-version = "0.1.0"
-dependencies = [
- "clap",
- "csv",
- "image",
- "serde",
-]
-
-[[package]]
 name = "getrandom"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -665,6 +655,16 @@ name = "paste"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
+
+[[package]]
+name = "pixels"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "csv",
+ "image",
+ "serde",
+]
 
 [[package]]
 name = "pkg-config"
